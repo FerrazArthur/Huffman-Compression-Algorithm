@@ -1,6 +1,10 @@
 #include<string.h>
 #include"RB.c"
 
+/*
+this code receive a file as input, read all it's characters and store them in a Red Black Tree, counting all it's elements
+*/
+
 typedef struct codigo
 {
     char caracter;
