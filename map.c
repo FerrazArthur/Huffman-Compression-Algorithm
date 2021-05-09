@@ -172,7 +172,7 @@ Code* createHuffmanTree(Queue* minPriority)
             return NULL;
         //create a sum Code with the 2 smallest
         sum->count = ptr1->info->count + ptr2->info->count;
-        if(ptr1->info->count < ptr2->info->count)
+        if(ptr1->info->count > ptr2->info->count)
         {
             sum->left = ptr1->info;
             sum->right = ptr2->info;
