@@ -11,7 +11,7 @@ typedef struct code
 {
     unsigned char* character;
     int count;
-    char* codeName;
+    unsigned char* codeName;
     int sizeCodeName;
     struct code* left;
     struct code* right;
@@ -211,23 +211,37 @@ Code* createHuffmanTree(Queue* minPriority)
     return sum;
 }
 
-void createCodeNames(Code* huff, char* codeName, int level)
+void createCodeNames(Code* huff, unsigned char* codeName, int level)
 {//what should happen when we have a text file with only one distinct character? meanwhile it does nothing
     if(huff != NULL)
     {
         if(huff->character != NULL && level != 0)//is not an internal node and is not the case where the file has only one distinct character
         {
-            huff->codeName = (char*) malloc(sizeof(char)*level);
-            memcpy(huff->codeName, codeName, level);
+            printf("%c\n", *huff->character);
+            huff->codeName = codeName;
             huff->sizeCodeName = level;
         }
-        codeName = (char*) realloc(codeName, sizeof(char) * (level + 1));
-        codeName[level] = 0;
-        createCodeNames(huff->left, codeName, level + 1);
-        codeName[level] = 1;
-        createCodeNames(huff->right, codeName, level + 1);
+        else
+        {
+            codeName = (unsigned char*) realloc(codeName, sizeof(char) * (level + 1));
+            codeName[level] = '0';
+            for(int i = 0; i < level + 1; i++)
+                printf("%c", codeName[i]);
+            printf("\n");
+            createCodeNames(huff->left, codeName, level + 1);
+            unsigned char* codeName2 = (unsigned char*) malloc(sizeof(char) * (level + 1));
+            memcpy(codeName2, codeName, sizeof(char) * (level + 1));
+            codeName2[level] = '1';
+            for(int i = 0; i < level + 1; i++)
+                printf("%c", codeName2[i]);
+            printf("\n");
+            createCodeNames(huff->right, codeName2, level + 1);
+        }
     }
+    else
+        free(codeName);
 }
+
 
 //
 
@@ -267,10 +281,16 @@ void printHuff(Code* huff, int level)
             printf("\t");
         if(huff->character == NULL)
             printf("+: %d\n", huff->count);
-        else if(*huff->character != '\n')
-            printf("%c: %d code:%s\n", *huff->character, huff->count, huff->codeName);
         else
-            printf("enter: %d code:%s\n", huff->count, huff->codeName);
+        {
+        if(*huff->character != '\n')
+            printf("%c: %d code:", *huff->character, huff->count);
+        else
+            printf("enter: %d code:", huff->count);
+            for(int i = 0; i < huff->sizeCodeName; i++)
+                printf("%c", huff->codeName[i]);
+            printf("\n");
+        }
         if(huff->left != NULL)
             printHuff(huff->left, level+1);
     }
