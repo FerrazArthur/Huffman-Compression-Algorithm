@@ -9,9 +9,9 @@ this code receive a file as input, read all it's characters and store them in a 
 
 typedef struct code
 {
-    char* character;
+    unsigned char* character;
     int count;
-    int* codeName;
+    char* codeName;
     int sizeCodeName;
     struct code* left;
     struct code* right;
@@ -31,7 +31,7 @@ void incrementCode(Node* node)
         getCode(node)->count++;
 }
 
-void* createCode(char* aux)
+void* createCode(unsigned char* aux)
 {
     Code* ptr = (Code*) malloc(sizeof(Code));
     if(ptr != NULL)
@@ -50,7 +50,7 @@ void printKey(Node* node)
         printf("%c", *getCode(node)->character);
 }
 
-int compareInfo(char* info1, char* info2)
+int compareInfo(unsigned char* info1, unsigned char* info2)
 {
    if (*info1 == *info2)
        return 0; 
@@ -59,13 +59,13 @@ int compareInfo(char* info1, char* info2)
    return -1;
 }
 
-char* getKey(Node* node)
+unsigned char* getKey(Node* node)
 {
     if(node != NULL)
         return getCode(node)->character;
 }
 
-void destroyInfo(char* info)
+void destroyInfo(unsigned char* info)
 {
     free(info);
 }
@@ -211,6 +211,24 @@ Code* createHuffmanTree(Queue* minPriority)
     return sum;
 }
 
+void createCodeNames(Code* huff, char* codeName, int level)
+{//what should happen when we have a text file with only one distinct character? meanwhile it does nothing
+    if(huff != NULL)
+    {
+        if(huff->character != NULL && level != 0)//is not an internal node and is not the case where the file has only one distinct character
+        {
+            huff->codeName = (char*) malloc(sizeof(char)*level);
+            memcpy(huff->codeName, codeName, level);
+            huff->sizeCodeName = level;
+        }
+        codeName = (char*) realloc(codeName, sizeof(char) * (level + 1));
+        codeName[level] = 0;
+        createCodeNames(huff->left, codeName, level + 1);
+        codeName[level] = 1;
+        createCodeNames(huff->right, codeName, level + 1);
+    }
+}
+
 //
 
 int createMap(char* fileName, Node** map)
@@ -219,14 +237,13 @@ int createMap(char* fileName, Node** map)
     FILE *fptr;
     Node* temp;
     fptr = fopen(fileName, "r");
-    char* aux;
+    unsigned char* aux;
     if(fptr != NULL)
     {
         while(1)
         {
-            aux = (char*) malloc(sizeof(char));
-            *aux = getc(fptr);
-            if(*aux == EOF)
+            aux = (unsigned char*) malloc(sizeof(unsigned char));
+            if(fscanf(fptr, "%c", aux) == EOF)
             {
                 destroyInfo(aux);
                 break;
@@ -251,9 +268,9 @@ void printHuff(Code* huff, int level)
         if(huff->character == NULL)
             printf("+: %d\n", huff->count);
         else if(*huff->character != '\n')
-            printf("%c: %d\n", *huff->character, huff->count);
+            printf("%c: %d code:%s\n", *huff->character, huff->count, huff->codeName);
         else
-            printf("enter: %d\n", huff->count);
+            printf("enter: %d code:%s\n", huff->count, huff->codeName);
         if(huff->left != NULL)
             printHuff(huff->left, level+1);
     }
@@ -273,6 +290,7 @@ int main()
         printRBTree(map, 0);//print the redBlack Tree that holds the characters
         queue = insertionSort(map);//Get a minimum priority queue from the redBlackTree
         huff = createHuffmanTree(queue);//get the huffman tree of those characters
+        createCodeNames(huff, NULL, 0);
         printHuff(huff, 0);
     }
     else

@@ -78,7 +78,7 @@ Node* findSmallestNodeRBTree(Node* head)
 }
 
 
-Node* searchInfoRBTree(Node* head, char* key)
+Node* searchInfoRBTree(Node* head, unsigned char* key)
 {
     if (head != NULL)
     {
@@ -137,9 +137,9 @@ void RLRotation(Node** head)
 }
 
 void incrementCode(Node* node);
-void* createCode(char* aux);
+void* createCode(unsigned char* aux);
 
-int insertNodeRBTree(Node** head, Node* root, char* newInfo)
+int insertNodeRBTree(Node** head, Node* root, unsigned char* newInfo)
 {
     int answer = ABORT;
     int compare = 0;
@@ -232,7 +232,7 @@ int insertNodeRBTree(Node** head, Node* root, char* newInfo)
     return answer;
 }
 
-int removeNodeRBTree(Node** head,Node* root, char* info)
+int removeNodeRBTree(Node** head,Node* root, unsigned char* info)
 {
     int answer = ABORT;
     Node* ptr = NULL;
