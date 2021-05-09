@@ -12,13 +12,13 @@ typedef struct Node
 
 //***********************************************Abstract methods:
 
-char getKey(Node* node);
+char* getKey(Node* node);
 /*
 Input: Pointer to Node
 Output: node->info or NULL
 */
 
-int compareInfo(char info1, char info2);
+int compareInfo(char* info1, char* info2);
 /*
 Expected input: two generic pointers
 Expected output: 
@@ -27,7 +27,7 @@ Expected output:
     -1 if info1 value is smaller than info2;
 */
 
-void destroyInfo(char info);
+void destroyInfo(char* info);
 /*
 Input: pointer to info
 does free to info
@@ -86,13 +86,13 @@ Input: Pointer to a Node in a RbTree
 Output: Pointer to Node that has the smallest key
 */
 
-Node* searchInfoRBTree(Node* head, char info);
+Node* searchInfoRBTree(Node* head, char* info);
 /*
 Input: Pointer to root of Red-Black tree, information to be searched
 Output: Pointer to Node that contains information equivalent to info or NULL otherwise
 */
 
-int insertNodeRBTree(Node** head, Node* root, Node* newNode);
+int insertNodeRBTree(Node** head, Node* root, char* newInfo);
 /*
 Input: Pointer of pointer to Node(already in the tree),Pointer to Node that is Root of this tree, pointer to Node(to be inserted, must be red)
 Output:
@@ -100,7 +100,7 @@ Output:
     0 if it hasnt
 */
 
-int removeNodeRBTree(Node** head, Node* root, char info);
+int removeNodeRBTree(Node** head, Node* root, char* info);
 /*
 Input: Pointer of pointer to Node(already in the tree), information to be removed
 Output:

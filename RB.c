@@ -78,7 +78,7 @@ Node* findSmallestNodeRBTree(Node* head)
 }
 
 
-Node* searchInfoRBTree(Node* head, char key)
+Node* searchInfoRBTree(Node* head, char* key)
 {
     if (head != NULL)
     {
@@ -137,27 +137,28 @@ void RLRotation(Node** head)
 }
 
 void incrementCode(Node* node);
+void* createCode(char* aux);
 
-int insertNodeRBTree(Node** head, Node* root, Node* newNode)
+int insertNodeRBTree(Node** head, Node* root, char* newInfo)
 {
     int answer = ABORT;
     int compare = 0;
-    if(newNode == NULL)
-        return answer;
     if((*head) == NULL)
     {
-        *head = newNode;
+        *head = createNodeRBTree(createCode(newInfo));
         if(root == NULL)//the tree is empty so newNode is going to be the root, needs to be Black
             changeColor(*head, Black);
         return HASNEWSON;
     }
-    compare = compareInfo(getKey(*head), getKey(newNode));
+    compare = compareInfo(getKey(*head), newInfo);
     if(compare == 0)
+    {
         incrementCode(*head);
         return answer;
+    }
     if(compare == SMALLER)
     {//newNode's info is bigger than current's
-       if((answer = insertNodeRBTree(&(*head)->rightRB, root, newNode)) != ABORT)//recursive call passing rightRB
+       if((answer = insertNodeRBTree(&(*head)->rightRB, root, newInfo)) != ABORT)//recursive call passing rightRB
         {
             if(answer == HASNEWSON)// answer iquals 1 means that the node in this Node(head*) rightRB is Red
                 return RIGHTGRANDSON;//tells previous recursive calls that a red Node is located in his rightRB pointer
@@ -193,7 +194,7 @@ int insertNodeRBTree(Node** head, Node* root, Node* newNode)
     }
     else
     {//newNode's info is smaller than current's
-            if((answer = insertNodeRBTree(&(*head)->leftRB, root, newNode)) != ABORT)//recursive call passing leftRB
+            if((answer = insertNodeRBTree(&(*head)->leftRB, root, newInfo)) != ABORT)//recursive call passing leftRB
             {
             if(answer == HASNEWSON)// answer iquals 1 means that the node in this Node(head*) leftRB is Red
                 return LEFTGRANDSON;//tells previous recursive calls that a red Node is located in his leftRB pointer
@@ -231,7 +232,7 @@ int insertNodeRBTree(Node** head, Node* root, Node* newNode)
     return answer;
 }
 
-int removeNodeRBTree(Node** head,Node* root, char info)
+int removeNodeRBTree(Node** head,Node* root, char* info)
 {
     int answer = ABORT;
     Node* ptr = NULL;
