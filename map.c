@@ -389,7 +389,7 @@ void compress(const char* input, const char* output, Queue* table)
     if(fPtr != NULL)
     {
         sizeBits = getCompressedSize(table);
-        size = ceil((float) size / BITSINBYTE);
+        size = ceil((float) sizeBits / BITSINBYTE);
         compressed = (unsigned char*) calloc(size, sizeof(char));//alocate memory to store the compressed string
         while(fscanf(fPtr, "%c", &aux) != EOF)//take a character from input
         {
@@ -410,6 +410,8 @@ void compress(const char* input, const char* output, Queue* table)
         fPtr = fopen(output, "wb");
         fwrite(&sizeBits, sizeof(long long int), 1, fPtr);//write sizeBits
         fwrite(compressed, sizeof(char), size, fPtr);//write compress into output file
+        if(ferror(fPtr))
+            printf("erro\n");
         fclose(fPtr);
     }
 }
