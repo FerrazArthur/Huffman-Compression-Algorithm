@@ -1,7 +1,8 @@
+#include"RB.h"
 #include<string.h>
 #include<limits.h>
 #include<math.h>
-#include"RB.c"
+#define BITSINBYTE 8
 
 /*
 this code receive a file as input, read all it's characters and store them in a Red Black Tree, counting all it's elements
@@ -40,6 +41,8 @@ void* createCode(unsigned char* aux)
         ptr->count = 1;
         ptr->codeName = NULL;
         ptr->sizeCodeName = 0;
+        ptr->left = NULL;
+        ptr->right = NULL;
     }
     return ptr;
 }
@@ -63,6 +66,7 @@ unsigned char* getKey(Node* node)
 {
     if(node != NULL)
         return getCode(node)->character;
+    return NULL;
 }
 
 void destroyInfo(unsigned char* info)
@@ -274,14 +278,14 @@ void createCodeNames(Code* huff, unsigned char* codeName, int level)
         else
         {
             codeName = (unsigned char*) realloc(codeName, sizeof(char) * (level + 1));
-            codeName[level] = '0';
+            codeName[level] = 0;
             /*for(int i = 0; i < level + 1; i++)
                 printf("%c", codeName[i]);
             printf("\n");*/
             createCodeNames(huff->left, codeName, level + 1);
             unsigned char* codeName2 = (unsigned char*) malloc(sizeof(char) * (level + 1));
             memcpy(codeName2, codeName, sizeof(char) * (level + 1));
-            codeName2[level] = '1';
+            codeName2[level] = 1;
             /*for(int i = 0; i < level + 1; i++)
                 printf("%c", codeName2[i]);
             printf("\n");*/
@@ -298,7 +302,6 @@ int createMap(char* fileName, Node** map)
 {
     int count = 0;
     FILE *fptr;
-    Node* temp;
     fptr = fopen(fileName, "r");
     unsigned char* aux;
     if(fptr != NULL)
@@ -338,7 +341,7 @@ void printHuff(Code* huff, int level)
             printf("enter: %d code:", huff->count);
 
         for(int i = 0; i < huff->sizeCodeName; i++)
-            printf("%c", huff->codeName[i]);
+            printf("%d", huff->codeName[i]);
         printf("\n");
         }
         if(huff->left != NULL)
@@ -370,7 +373,7 @@ long long int getCompressedSize(Queue* table)
         count += ptr->info->count * ptr->info->sizeCodeName;//multiply frequency by length of codename
         ptr = ptr->next;//do it to all elements in queue(all elements in the input file)
     }
-    return ceil(count/8);//the minimum amount of bytes needed to store the compressed file
+    return count;
 }
 
 void compress(const char* input, const char* output, Queue* table)
@@ -379,23 +382,24 @@ void compress(const char* input, const char* output, Queue* table)
     Code* element = NULL;
     unsigned char* compressed = NULL;
     unsigned char aux = ' ';
+    long long int sizeBits = 0;
     long long int size = 0;
     long long int byte = 0;
     int pos = 0;
     if(fPtr != NULL)
     {
-        size = getCompressedSize(table);
-        printf("size = %lld\n", size);
+        sizeBits = getCompressedSize(table);
+        size = ceil((float) size / BITSINBYTE);
         compressed = (unsigned char*) calloc(size, sizeof(char));//alocate memory to store the compressed string
         while(fscanf(fPtr, "%c", &aux) != EOF)//take a character from input
         {
             element = getElement(aux, table);// take the codeName of the current character
             for(int i = 0; i < element->sizeCodeName; i++)//write codeName into compressed
             {
-                aux = element->codeName[i];//get one bit
-                aux << 7-pos++;//move it to position
+                aux = element->codeName[i];//get a byte
+                aux = aux << (7-pos);//move it's significant bit to position
                 compressed[byte] = compressed[byte] | aux;//add to compress
-                if(pos == 8)
+                if(pos++ == BITSINBYTE)
                 {
                     pos = 0;
                     byte++;
@@ -404,11 +408,76 @@ void compress(const char* input, const char* output, Queue* table)
         }
         fclose(fPtr);
         fPtr = fopen(output, "wb");
+        fwrite(&sizeBits, sizeof(long long int), 1, fPtr);//write sizeBits
         fwrite(compressed, sizeof(char), size, fPtr);//write compress into output file
         fclose(fPtr);
     }
 }
 
+void decompress(const char* input, const char* output, Queue* table, Code* huff)
+{
+    if(table == NULL || huff == NULL)
+        return;
+    FILE* fPtr = fopen(input, "r");
+    Code* element = NULL;
+    unsigned char* compressed = NULL;
+    unsigned char aux = ' ';
+    long long int count = 0;
+    long long int size = 0;
+    long long int sizeBits = 0;
+    long long int byte = 0;
+    int pos = 0;
+    fPtr = fopen(input, "rb");
+    //retrieve compressed file into a compressed string
+    if(fPtr != NULL)
+    {
+        fread(&sizeBits, sizeof(long long int), 1, fPtr);
+        size = ceil((double)sizeBits/BITSINBYTE);
+        compressed = (unsigned char*) calloc(size, sizeof(char));
+        fread(compressed, sizeof(char), size, fPtr);
+        fclose(fPtr);
+    }
+    else
+    {
+        printf("Arquivo não encontrado\n");
+        return;
+    }
+    byte = 0;
+    pos = 0;
+    fPtr = fopen(output, "w");
+    //transform compressed string of codenames into deCompressed string, so we can acess it's individual bits
+    if(fPtr != NULL)
+    {
+        while(1)//runs throught the compressed string
+        {
+            element = huff;
+            while(element->character == NULL)// while element is a internal node
+            {
+                //take pos bit in compressed[byte]
+                aux = compressed[byte];
+                //update compressed
+                compressed[byte] = compressed[byte] << 1;
+                aux = aux >> 7;
+                count++;
+                //evaluate
+                if (aux == 0)
+                    element = element->left;
+                else 
+                    element = element->right;
+                //external loop control
+                if(pos++ == BITSINBYTE)
+                {
+                    pos = 0;
+                    byte++;
+                }
+            }
+            fprintf(fPtr, "%c", *element->character);
+            if(count == sizeBits)
+                break;
+        }
+        fclose(fPtr);
+    }
+}
 int main()
 {
     char fileInputName[50];
@@ -418,7 +487,7 @@ int main()
     Code* huff = NULL;
     printf("Insira o nome do arquivo a ser comprimido:\n");
     scanf("%s", fileInputName);
-    int count = createMap(fileInputName, &map);//define all characters in the fileName file and count it's ocurrences
+    createMap(fileInputName, &map);//define all characters in the fileName file and count it's ocurrences
     if(map != NULL)
     {
         //printRBTree(map, 0);//print the redBlack Tree that holds the characters
@@ -431,6 +500,9 @@ int main()
         printf("Insira o nome do arquivo que deseja criar:\n");
         scanf("%s", fileOutputName);
         compress(fileInputName, fileOutputName, queue);
+        printf("Insira o nome do arquivo q deseja criar para verificar se esta comprimido certo:\n");
+        scanf("%s", fileInputName);
+        decompress(fileOutputName, fileInputName, queue, huff);
     }
     else
         printf("Arquivo não encontrado\n");
