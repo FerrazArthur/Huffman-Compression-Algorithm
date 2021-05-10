@@ -399,7 +399,7 @@ void compress(const char* input, const char* output, Queue* table)
                 aux = element->codeName[i];//get a byte
                 aux = aux << (7-pos);//move it's significant bit to position
                 compressed[byte] = compressed[byte] | aux;//add to compress
-                if(pos++ == BITSINBYTE)
+                if(++pos == BITSINBYTE)
                 {
                     pos = 0;
                     byte++;
@@ -467,7 +467,7 @@ void decompress(const char* input, const char* output, Queue* table, Code* huff)
                 else 
                     element = element->right;
                 //external loop control
-                if(pos++ == BITSINBYTE)
+                if(++pos == BITSINBYTE)
                 {
                     pos = 0;
                     byte++;
