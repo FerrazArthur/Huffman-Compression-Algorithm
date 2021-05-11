@@ -11,9 +11,9 @@ this code receive a file as input, read all it's characters and store them in a 
 typedef struct code
 {
     unsigned char* character;
-    int count;
+    long long unsigned int count;
     unsigned char* codeName;
-    int sizeCodeName;
+    long long unsigned int sizeCodeName;
     struct code* left;
     struct code* right;
 }Code;
@@ -114,17 +114,11 @@ Queue* createQueue(Code* info)
     }
     return ptr;
 }
-int conz = 0;
 void getQueue(Node* RB, Queue** queue)
 {//insert RB content to queue in order using character as key
     Queue* ptr = NULL;
     if(RB != NULL)
     {
-        /*printf("%d -- %c\n", conz++, *getCode(RB)->character);
-        if(conz == 75)
-        {
-            printf("pause\n");
-        }*/
         if(RB->leftRB != NULL)
             getQueue(RB->leftRB, queue);
         ptr = createQueue(RB->info);
@@ -135,21 +129,21 @@ void getQueue(Node* RB, Queue** queue)
     }
 }
 
-int crescent(int value1, int value2)
+int crescent(long long unsigned int value1,long long unsigned int value2)
 {
     if(value1 > value2)
         return 1;
     return 0;
 }
 
-int decrescent(int value1, int value2)
+int decrescent(long long unsigned int value1,long long unsigned int value2)
 {
     if(value1 < value2)
         return 1;
     return 0;
 }
 
-Queue* insertionSort(Queue* queue, int (*op) (int, int))
+Queue* insertionSort(Queue* queue, int (*op) (long long unsigned int,long long unsigned int))
 {
     Queue* output = NULL;
     Queue* keyPtr = NULL;
@@ -158,7 +152,7 @@ Queue* insertionSort(Queue* queue, int (*op) (int, int))
     if(queue == NULL)
         return NULL;
     //counting how many distint characters there are
-    int count = 0;
+    long long unsigned int count = 0;
     ptr = queue;
     while(ptr != NULL)
     {
@@ -166,7 +160,7 @@ Queue* insertionSort(Queue* queue, int (*op) (int, int))
         ptr = ptr->next;
     }
     //popping elements from queue into output until they are in crescent order
-    for(int i = 0; i < count; i++)
+    for(long long unsigned int i = 0; i < count; i++)
     {
         keyPtr = ptr = queue;
         pPtr = NULL;
@@ -276,7 +270,7 @@ Code* createHuffmanTree(Queue* minPriority)
     return sum;
 }
 
-void createCodeNames(Code* huff, unsigned char* codeName, int level)
+void createCodeNames(Code* huff, unsigned char* codeName, long long unsigned int level)
 {//what should happen when we have a text file with only one distinct character? meanwhile it does nothing
     if(huff != NULL)
     {
@@ -290,16 +284,10 @@ void createCodeNames(Code* huff, unsigned char* codeName, int level)
         {
             codeName = (unsigned char*) realloc(codeName, sizeof(char) * (level + 1));
             codeName[level] = 0;
-            /*for(int i = 0; i < level + 1; i++)
-                printf("%c", codeName[i]);
-            printf("\n");*/
             createCodeNames(huff->left, codeName, level + 1);
             unsigned char* codeName2 = (unsigned char*) malloc(sizeof(char) * (level + 1));
             memcpy(codeName2, codeName, sizeof(char) * (level + 1));
             codeName2[level] = 1;
-            /*for(int i = 0; i < level + 1; i++)
-                printf("%c", codeName2[i]);
-            printf("\n");*/
             createCodeNames(huff->right, codeName2, level + 1);
         }
     }
@@ -309,9 +297,9 @@ void createCodeNames(Code* huff, unsigned char* codeName, int level)
 
 //
 
-int createMap(const char* fileName, Node** map)
+long long unsigned int createMap(const char* fileName, Node** map)
 {
-    int count = 0;
+    long long unsigned int count = 0;
     FILE *fptr;
     fptr = fopen(fileName, "r");
     unsigned char* aux;
@@ -336,27 +324,27 @@ int createMap(const char* fileName, Node** map)
     return count;//total amount of characters in file
 }
 
-void printHuff(Code* huff, int level)
+void printHuff(Code* huff, long long unsigned int level)
 {
     if(huff != NULL)
     {
         if(huff->right != NULL)
             printHuff(huff->right, level+1);
         //print identation
-        for(int i = 0; i < level; i++)
+        for(long long unsigned int i = 0; i < level; i++)
             printf("\t");
         //print internal node
         if(huff->character == NULL)
-            printf("+: %d ocorrencias\n", huff->count);
+            printf("+: %lld ocorrencias\n", huff->count);
         //print leafe
         else
         {
             if(*huff->character != '\n')
-                printf("caracter: %c ocorre %d vezes. codenome:", *huff->character, huff->count);
+                printf("caracter: %c ocorre %lld vezes. codenome:", *huff->character, huff->count);
             else
-                printf("caracter enter ocorre %d vezes. codenome:", huff->count);
+                printf("caracter enter ocorre %lld vezes. codenome:", huff->count);
             //print code
-            for(int i = 0; i < huff->sizeCodeName; i++)
+            for(long long unsigned int i = 0; i < huff->sizeCodeName; i++)
                 printf("%d", huff->codeName[i]);
             printf("\n");
         }
@@ -381,10 +369,10 @@ Code* getElement(unsigned char foo, Queue* table)
     return NULL;
 }
 
-long long int getCompressedSize(Queue* table)
+long long unsigned int getCompressedSize(Queue* table)
 {
     Queue* ptr = table;
-    long long int count = 0;
+    long long unsigned int count = 0;
     while(ptr != NULL)
     {
         count += ptr->info->count * ptr->info->sizeCodeName;//multiply frequency by length of codename
@@ -406,23 +394,25 @@ void compress(const char* input, char* output1, Queue* table)
     //end--
     unsigned char* compressed = NULL;
     unsigned char aux = ' ';
-    long long int sizeBits = 0;
-    long long int size = 0;
-    long long int byte = 0;
-    int pos = 0;
+    long long unsigned int sizeBits = 0;
+    long long unsigned int size = 0;
+    long long unsigned int byte = 0;
+    long long unsigned int pos = 0;
     FILE* fPtr = fopen(input, "r");
     if(fPtr != NULL)
     {
         //prepair variables
         sizeBits = getCompressedSize(table);
-        size = ceil((float) sizeBits / BITSINBYTE);
+        size = ceil((long double) sizeBits / BITSINBYTE);
         compressed = (unsigned char*) calloc(size, sizeof(char));//alocate memory to store the compressed string
         //read input from file
+        long long unsigned int opa = 0;
         while(fscanf(fPtr, "%c", &aux) != EOF)//take a character from input
         {
             element = getElement(aux, table);// take the codeName of the current character
-            for(int i = 0; i < element->sizeCodeName; i++)//write codeName into compressed
+            for(long long unsigned int i = 0; i < element->sizeCodeName; i++)//write codeName into compressed
             {
+                opa++;
                 aux = element->codeName[i];//get a byte
                 aux = aux << (7-pos);//move it's significant bit to position
                 compressed[byte] = compressed[byte] | aux;//add to compress
@@ -436,6 +426,7 @@ void compress(const char* input, char* output1, Queue* table)
         fclose(fPtr);
         holdNext = table;
         pos = 0;
+        //calculate the num of elements in table
         while(holdNext != NULL)
         {
             pos++;
@@ -445,8 +436,8 @@ void compress(const char* input, char* output1, Queue* table)
         if(fPtr != NULL)
         {
             //store table and compressed string into file
-            fwrite(&sizeBits, sizeof(long long int), 1, fPtr);//write sizeBits
-            fwrite(&pos, sizeof(int), 1, fPtr);
+            fwrite(&sizeBits, sizeof(long long unsigned int), 1, fPtr);//write sizeBits
+            fwrite(&pos, sizeof(long long unsigned int), 1, fPtr);//store num of elemnts in table
             table = insertionSort(table, crescent);//turn table into in-order so decompress can work quickly
             holdCurrent = table;
             while(holdCurrent != NULL)
@@ -484,11 +475,11 @@ void decompress(const char* input, const char* output)
     Queue* table = NULL;
     unsigned char* compressed = NULL;
     unsigned char aux = ' ';
-    long long int count = 0;
-    long long int size = 0;
-    long long int sizeBits = 0;
-    long long int byte = 0;
-    int pos = 0;
+    long long unsigned int count = 0;
+    long long unsigned int size = 0;
+    long long unsigned int sizeBits = 0;
+    long long unsigned int byte = 0;
+    long long unsigned int pos = 0;
     if(strstr(input, ".art") == NULL)
     {
         printf("Formato não reconhecido\n");
@@ -497,10 +488,10 @@ void decompress(const char* input, const char* output)
     //retrieve compressed file into a compressed string
     if(fPtr != NULL)
     {
-        fread(&sizeBits, sizeof(long long int), 1, fPtr);
-        size = ceil((double)sizeBits/BITSINBYTE);
-        fread(&pos, sizeof(int), 1, fPtr);
-        for(int i = 0; i < pos; i++)
+        fread(&sizeBits, sizeof(long long unsigned int), 1, fPtr);
+        size = ceil((long double)sizeBits/BITSINBYTE);
+        fread(&pos, sizeof(long long unsigned int), 1, fPtr);
+        for(long long unsigned int i = 0; i < pos; i++)
         {
             holdCurrent = (Queue*) malloc(sizeof(Queue));
             fread(holdCurrent, sizeof(Queue), 1, fPtr);
@@ -559,10 +550,13 @@ void decompress(const char* input, const char* output)
                     pos = 0;
                     byte++;
                 }
+                if(floor((long double)count/BITSINBYTE) == size)
+                    break;
             }
-            fprintf(fPtr, "%c", *element->character);
-            if(count == sizeBits)
+            if(floor((long double)count/BITSINBYTE) == size)
                 break;
+            else
+                fprintf(fPtr, "%c", *element->character);
         }
         fclose(fPtr);
     }
@@ -578,7 +572,7 @@ void Compress(const char* fileInputName, char* fileOutputName)
     createMap(fileInputName, &map);//define all characters in the fileName file and count it's ocurrences
     if(map != NULL)
     {
-        printRBTree(map, 0);//print the redBlack Tree that holds the characters
+        //printRBTree(map, 0);//print the redBlack Tree that holds the characters
         getQueue(map, &queue);
         queue = insertionSort(queue, crescent);//Get a minimum priority queue from the redBlackTree elements
         huff = createHuffmanTree(copyQueue(queue));//get the huffman tree of those characters
