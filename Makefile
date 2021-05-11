@@ -2,8 +2,8 @@ CC = gcc
 CFLAGS = -g -Wall
 DEPS = RB.h
 
-compactar: map.o RB.o
-	$(CC) $(CFLAGS) -o compactar map.o RB.o -lm
+comDecom: map.o RB.o
+	$(CC) $(CFLAGS) -o comDecom map.o RB.o -lm
 map.o: map.c $(DEPS)
 	$(CC) $(CFLAGS) -c -o map.o map.c -lm
 RB.o: RB.c
