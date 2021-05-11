@@ -108,11 +108,25 @@ void getQueue(Node* RB, Queue** queue)
     }
 }
 
-Queue* insertionSortCrescent(Node* RB)
+int crescent(int value1, int value2)
+{
+    if(value1 > value2)
+        return 1;
+    return 0;
+}
+
+int decrescent(int value1, int value2)
+{
+    if(value1 < value2)
+        return 1;
+    return 0;
+}
+
+Queue* insertionSort(Node* RB, int (*op) (int, int))
 {
     Queue* queue = NULL;
     Queue* output = NULL;
-    Queue* maxPtr = NULL;
+    Queue* keyPtr = NULL;
     Queue* pPtr = NULL;
     Queue* ptr = NULL;
     getQueue(RB, &queue);
@@ -130,23 +144,23 @@ Queue* insertionSortCrescent(Node* RB)
     //popping elements from queue into output until they are in crescent order
     for(int i = 0; i < count; i++)
     {
-        maxPtr = ptr = queue;
+        keyPtr = ptr = queue;
         pPtr = NULL;
         while(ptr != NULL && ptr->next != NULL)
         {
-            if(ptr->next->info->count > maxPtr->info->count)
+            if((*op) (ptr->next->info->count, keyPtr->info->count))//comparation 
             {
-                maxPtr = ptr->next;
-                pPtr = ptr;//keep track of previous ptr so we can remove maxPtr from queue
+                keyPtr = ptr->next;
+                pPtr = ptr;//keep track of previous ptr so we can remove keyPtr from queue
             }
             ptr = ptr->next;
         }
         if(pPtr != NULL)//smallest isnt the first
-            pPtr->next = maxPtr->next;//isolate maxPtr
+            pPtr->next = keyPtr->next;//isolate keyPtr
         else//smallest is the first
             queue = queue->next;
-        maxPtr->next = output;//insert maxPtr as first element in output
-        output = maxPtr;//update output's head
+        keyPtr->next = output;//insert keyPtr as first element in output
+        output = keyPtr;//update output's head
     }
     /*ptr = output;
     while(ptr != NULL)
@@ -154,55 +168,6 @@ Queue* insertionSortCrescent(Node* RB)
         printf("%c = %d\n", *ptr->info->character, ptr->info->count);
         ptr = ptr->next;
     }*/
-    return output;
-}
-
-Queue* insertionSortDecrescent(Node* RB)
-{
-    Queue* queue = NULL;
-    Queue* output = NULL;
-    Queue* minPtr = NULL;
-    Queue* pPtr = NULL;
-    Queue* ptr = NULL;
-    getQueue(RB, &queue);
-    if(queue == NULL)
-        return NULL;
-    int count = 0;
-    //counting how many distint characters there are
-    ptr = queue;
-    while(ptr != NULL)
-    {
-        count++;
-        ptr = ptr->next;
-    }
-    //printf("count = %d\n", count);
-    //popping elements from queue into output until they are in decrescent order
-    for(int i = 0; i < count; i++)
-    {
-        minPtr = ptr = queue;
-        pPtr = NULL;
-        while(ptr != NULL && ptr->next != NULL)
-        {
-            if(ptr->next->info->count < minPtr->info->count)
-            {
-                minPtr = ptr->next;
-                pPtr = ptr;//keep track of previous ptr so we can remove minPtr from queue
-            }
-            ptr = ptr->next;
-        }
-        if(pPtr != NULL)//biggest isnt the first
-            pPtr->next = minPtr->next;//isolate minPtr
-        else//biggest is the first
-            queue = queue->next;
-        minPtr->next = output;//insert minPtr as first element in output
-        output = minPtr;//update output's head
-    }
-    ptr = output;
-    while(ptr != NULL)
-    {
-        printf("%c = %d\n", *ptr->info->character, ptr->info->count);
-        ptr = ptr->next;
-    }
     return output;
 }
 
@@ -493,11 +458,11 @@ int main()
     if(map != NULL)
     {
         //printRBTree(map, 0);//print the redBlack Tree that holds the characters
-        queue = insertionSortCrescent(map);//Get a minimum priority queue from the redBlackTree
+        queue = insertionSort(map, crescent);//Get a minimum priority queue from the redBlackTree
         huff = createHuffmanTree(queue);//get the huffman tree of those characters
         createCodeNames(huff, NULL, 0);//calculate the codeName of the characters
         printHuff(huff, 0);
-        queue = insertionSortDecrescent(map);//creating table of contents in decrescent order
+        queue = insertionSort(map, decrescent);//creating table of contents in decrescent order
         //create the compact file 
         printf("Insira o nome do arquivo que deseja criar:\n");
         scanf("%s", fileOutputName);
