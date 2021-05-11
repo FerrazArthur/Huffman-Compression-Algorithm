@@ -271,7 +271,7 @@ Code* createHuffmanTree(Queue* minPriority)
 }
 
 void createCodeNames(Code* huff, unsigned char* codeName, long long unsigned int level)
-{//what should happen when we have a text file with only one distinct character? meanwhile it does nothing
+{
     if(huff != NULL)
     {
         if(huff->character != NULL && level != 0)//is not an internal node and is not the case where the file has only one distinct character
@@ -279,6 +279,12 @@ void createCodeNames(Code* huff, unsigned char* codeName, long long unsigned int
             //printf("%c\n", *huff->character);
             huff->codeName = codeName;
             huff->sizeCodeName = level;
+        }
+        else if(huff->character != NULL)
+        {
+            //the file has no disting character
+            huff->codeName = 0;
+            huff->sizeCodeName = 1;
         }
         else
         {
