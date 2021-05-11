@@ -587,6 +587,7 @@ void Compress(const char* fileInputName, char* fileOutputName)
         queue = insertionSort(queue, decrescent);//creating table of contents in decrescent order
         //create the compact file 
         compress(fileInputName, fileOutputName, queue);
+        destroyRBTree(map);
     }
     else
         printf("Arquivo não encontrado\n");
