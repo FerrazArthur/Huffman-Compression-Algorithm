@@ -393,13 +393,14 @@ long long int getCompressedSize(Queue* table)
     return count;
 }
 
-void compress(const char* input, const char* output, Queue* table)
+void compress(const char* input, char* output1, Queue* table)
 {
     Code* element = NULL;
     //auxiliary variables to store in file begin--
     Code* holdInfo = NULL;
     Queue* holdNext = NULL;
     Queue* holdCurrent = NULL;
+    const char* output = strcat(output1, ".art");//name of format to be saved
     unsigned char* holdCharacter = NULL;
     unsigned char* holdCodeName = NULL;
     //end--
@@ -488,6 +489,11 @@ void decompress(const char* input, const char* output)
     long long int sizeBits = 0;
     long long int byte = 0;
     int pos = 0;
+    if(strstr(input, ".art") == NULL)
+    {
+        printf("Formato não reconhecido\n");
+        return;
+    }
     //retrieve compressed file into a compressed string
     if(fPtr != NULL)
     {
@@ -564,7 +570,7 @@ void decompress(const char* input, const char* output)
         printf("Falha ao salvar as alterações\n");
 }
 
-void Compress(const char* fileInputName, const char* fileOutputName)
+void Compress(const char* fileInputName, char* fileOutputName)
 {
     Node* map = NULL;
     Queue* queue = NULL;
