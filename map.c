@@ -18,6 +18,18 @@ typedef struct code
     struct code* right;
 }Code;
 
+void destroyCode(Code* ptr)
+{
+    if(ptr != NULL)
+    {
+        free(ptr->character);
+        free(ptr->codeName);
+        destroyCode(ptr->left);
+        destroyCode(ptr->right);
+        free(ptr);
+    }
+}
+
 Code* getCode(Node* node)
 {
     if(node != NULL)
@@ -82,6 +94,16 @@ typedef struct queue
     struct queue* next;
 }Queue;
 
+void destroyQueue(Queue* ptr)
+{
+    if(ptr != NULL)
+    {
+        destroyCode(ptr->info);
+        destroyQueue(ptr->next);
+        free(ptr);
+    }
+}
+
 Queue* createQueue(Code* info)
 {
     Queue* ptr = (Queue*) malloc(sizeof(Queue));
@@ -122,25 +144,16 @@ int decrescent(int value1, int value2)
     return 0;
 }
 
-Queue* insertionSort(Node* RB, int (*op) (int, int))
+Queue* insertionSort(Queue* queue, int count, int (*op) (int, int))
 {
-    Queue* queue = NULL;
     Queue* output = NULL;
     Queue* keyPtr = NULL;
     Queue* pPtr = NULL;
     Queue* ptr = NULL;
-    getQueue(RB, &queue);
     if(queue == NULL)
         return NULL;
-    int count = 0;
     //counting how many distint characters there are
     ptr = queue;
-    while(ptr != NULL)
-    {
-        count++;
-        ptr = ptr->next;
-    }
-    //printf("count = %d\n", count);
     //popping elements from queue into output until they are in crescent order
     for(int i = 0; i < count; i++)
     {
@@ -169,6 +182,28 @@ Queue* insertionSort(Node* RB, int (*op) (int, int))
         ptr = ptr->next;
     }*/
     return output;
+}
+
+Queue* copyQueue(Queue* original)
+{
+    Queue* copy = NULL;
+    Queue* cPtr = NULL;
+    Queue* ptr = original;
+    while(ptr != NULL)
+    {
+        if(copy == NULL)
+        {
+            copy = createQueue(ptr->info);
+            cPtr = copy;
+        }
+        else
+        {
+            cPtr->next = createQueue(ptr->info);
+            cPtr = cPtr->next;
+        }
+        ptr = ptr->next;
+    }
+    return copy;
 }
 
 Code* createHuffmanTree(Queue* minPriority)
@@ -341,16 +376,21 @@ long long int getCompressedSize(Queue* table)
     return count;
 }
 
-void compress(const char* input, const char* output, Queue* table)
+void compress(const char* input, const char* output, Queue* table, int length)
 {
-    FILE* fPtr = fopen(input, "r");
     Code* element = NULL;
+    Code* holdInfo = NULL;
+    Queue* holdNext = NULL;
+    Queue* holdCurrent = NULL;
+    unsigned char* holdCharacter = NULL;
+    unsigned char* holdCodeName = NULL;
     unsigned char* compressed = NULL;
     unsigned char aux = ' ';
     long long int sizeBits = 0;
     long long int size = 0;
     long long int byte = 0;
     int pos = 0;
+    FILE* fPtr = fopen(input, "r");
     if(fPtr != NULL)
     {
         sizeBits = getCompressedSize(table);
@@ -374,19 +414,39 @@ void compress(const char* input, const char* output, Queue* table)
         fclose(fPtr);
         fPtr = fopen(output, "wb");
         fwrite(&sizeBits, sizeof(long long int), 1, fPtr);//write sizeBits
+        fwrite(&length, sizeof(int), 1, fPtr);
+        table = insertionSort(table, length, crescent);
+        holdCurrent = table;
+        while(holdCurrent != NULL)
+        {
+            holdNext = holdCurrent->next;
+            holdInfo = holdCurrent->info;
+            holdCharacter = holdInfo->character;
+            holdCodeName = holdInfo->codeName;
+            holdCurrent->next = NULL;
+            holdCurrent->info->codeName = NULL;
+            holdCurrent->info->character = NULL;
+            holdCurrent->info = NULL;
+            fwrite(holdCurrent, sizeof(Queue), 1, fPtr);
+            fwrite(holdInfo, sizeof(Code), 1, fPtr);
+            fwrite(holdCharacter, sizeof(char), holdInfo->count, fPtr);
+            fwrite(holdCodeName, sizeof(char), holdInfo->sizeCodeName, fPtr);
+            destroyQueue(holdCurrent);
+            holdCurrent = holdNext;
+        }
         fwrite(compressed, sizeof(char), size, fPtr);//write compress into output file
-        if(ferror(fPtr))
-            printf("erro\n");
         fclose(fPtr);
     }
 }
 
-void decompress(const char* input, const char* output, Queue* table, Code* huff)
+void decompress(const char* input, const char* output)
 {
-    if(table == NULL || huff == NULL)
-        return;
-    FILE* fPtr = fopen(input, "r");
+    FILE* fPtr = fopen(input, "rb");
     Code* element = NULL;
+    Code* huff = NULL;
+    Queue* holdPrevious = NULL;
+    Queue* holdCurrent = NULL;
+    Queue* table = NULL;
     unsigned char* compressed = NULL;
     unsigned char aux = ' ';
     long long int count = 0;
@@ -394,12 +454,40 @@ void decompress(const char* input, const char* output, Queue* table, Code* huff)
     long long int sizeBits = 0;
     long long int byte = 0;
     int pos = 0;
-    fPtr = fopen(input, "rb");
     //retrieve compressed file into a compressed string
     if(fPtr != NULL)
     {
         fread(&sizeBits, sizeof(long long int), 1, fPtr);
         size = ceil((double)sizeBits/BITSINBYTE);
+        fread(&pos, sizeof(int), 1, fPtr);
+        /*
+        holdNext = table;
+        while(holdNext != NULL)
+        {
+            fwrite(holdCurrent, sizeof(Queue), 1, fPtr);
+            fwrite(holdCurrent->info, sizeof(Code), 1, fPtr);
+            fWrite(holdCurrent->info->character, sizeof(char), holdCurrent->info->count, fPtr);
+            fWrite(holdCurrent->info->codeName, sizeof(char), holdCurrent->info->sizeCodeName, fPtr);
+        }
+        */
+        for(int i = 0; i < pos; i++)
+        {
+            holdCurrent = (Queue*) malloc(sizeof(Queue));
+            fread(holdCurrent, sizeof(Queue), 1, fPtr);
+            holdCurrent->info = (Code*) malloc(sizeof(Code));
+            fread(holdCurrent->info, sizeof(Code), 1, fPtr);
+            holdCurrent->info->character = (unsigned char*) calloc(sizeof(char), holdCurrent->info->count);
+            fread(holdCurrent->info->character, sizeof(char), holdCurrent->info->count, fPtr);
+            holdCurrent->info->codeName = (unsigned char*) calloc(sizeof(char), holdCurrent->info->sizeCodeName);
+            fread(holdCurrent->info->codeName, sizeof(char), holdCurrent->info->sizeCodeName, fPtr);
+            if(table == NULL)
+                table = holdCurrent;
+            if(holdPrevious != NULL)
+                holdPrevious->next = holdCurrent;
+            holdPrevious = holdCurrent;
+        }
+        if(table == NULL)
+            return;
         compressed = (unsigned char*) calloc(size, sizeof(char));
         fread(compressed, sizeof(char), size, fPtr);
         fclose(fPtr);
@@ -409,6 +497,9 @@ void decompress(const char* input, const char* output, Queue* table, Code* huff)
         printf("Arquivo não encontrado\n");
         return;
     }
+    huff = createHuffmanTree(copyQueue(table));
+    if(huff == NULL)
+        return;
     byte = 0;
     pos = 0;
     fPtr = fopen(output, "w");
@@ -454,22 +545,23 @@ int main()
     Code* huff = NULL;
     printf("Insira o nome do arquivo a ser comprimido:\n");
     scanf("%s", fileInputName);
-    createMap(fileInputName, &map);//define all characters in the fileName file and count it's ocurrences
+    int count = createMap(fileInputName, &map);//define all characters in the fileName file and count it's ocurrences
     if(map != NULL)
     {
         //printRBTree(map, 0);//print the redBlack Tree that holds the characters
-        queue = insertionSort(map, crescent);//Get a minimum priority queue from the redBlackTree
-        huff = createHuffmanTree(queue);//get the huffman tree of those characters
+        getQueue(map, &queue);
+        queue = insertionSort(queue, count, crescent);//Get a minimum priority queue from the redBlackTree elements
+        huff = createHuffmanTree(copyQueue(queue));//get the huffman tree of those characters
         createCodeNames(huff, NULL, 0);//calculate the codeName of the characters
         printHuff(huff, 0);
-        queue = insertionSort(map, decrescent);//creating table of contents in decrescent order
+        queue = insertionSort(queue, count, decrescent);//creating table of contents in decrescent order
         //create the compact file 
         printf("Insira o nome do arquivo que deseja criar:\n");
         scanf("%s", fileOutputName);
-        compress(fileInputName, fileOutputName, queue);
+        compress(fileInputName, fileOutputName, queue, count);
         printf("Insira o nome do arquivo q deseja criar para verificar se esta comprimido certo:\n");
         scanf("%s", fileInputName);
-        decompress(fileOutputName, fileInputName, queue, huff);
+        decompress(fileOutputName, fileInputName);
     }
     else
         printf("Arquivo não encontrado\n");
