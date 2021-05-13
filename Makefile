@@ -8,5 +8,5 @@ comprimirDescomprimir.o: comprimirDescomprimir.c $(DEPS)
 	$(CC) $(CFLAGS) -c -o comprimirDescomprimir.o comprimirDescomprimir.c -lm
 RB.o: RB.c
 	$(CC) $(CFLAGS) -c -o RB.o RB.c -lm
-clean: $
+clean: 
 	\rm comprimirDescomprimir.o RB.o
