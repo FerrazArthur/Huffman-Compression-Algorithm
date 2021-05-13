@@ -467,6 +467,7 @@ void compress(const char* input, char* output1, Queue* table, long unsigned int 
                 holdCurrent = holdNext;
             }
             fwrite(compressed, sizeof(char), size, fPtr);//write compress into output file
+	    printf("Arquivo gerado com o nome %s\n", output);
             fclose(fPtr);
         }
         else
@@ -562,7 +563,7 @@ void decompress(const char* input, const char* output)
                 }
             }
             fprintf(fPtr, "%c", *element->character);
-            if(++count == amount)
+            if(++count >= amount)
                 break;
         }
         fclose(fPtr);
