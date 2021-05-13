@@ -404,6 +404,7 @@ void compress(const char* input, char* output1, Queue* table, long unsigned int 
     unsigned char aux = ' ';
     long unsigned int sizeBits = 0;
     long unsigned int size = 0;
+    long unsigned int count = 0;
     long unsigned int byte = 0;
     long unsigned int pos = 0;
     FILE* fPtr = fopen(input, "r");
@@ -414,13 +415,11 @@ void compress(const char* input, char* output1, Queue* table, long unsigned int 
         size = ceil((long double) sizeBits / BITSINBYTE);
         compressed = (unsigned char*) calloc(size, sizeof(char));//alocate memory to store the compressed string
         //read input from file
-        long unsigned int opa = 0;
         while(fscanf(fPtr, "%c", &aux) != EOF)//take a character from input
         {
             element = getElement(aux, table);// take the codeName of the current character
             for(long unsigned int i = 0; i < element->sizeCodeName; i++)//write codeName into compressed
             {
-                opa++;
                 aux = element->codeName[i];//get a byte
                 aux = aux << (7-pos);//move it's significant bit to position
                 compressed[byte] = compressed[byte] | aux;//add to compress
@@ -430,6 +429,8 @@ void compress(const char* input, char* output1, Queue* table, long unsigned int 
                     byte++;
                 }
             }
+            if(++count >= amount)
+                break;
         }
         fclose(fPtr);
         holdNext = table;
@@ -467,7 +468,7 @@ void compress(const char* input, char* output1, Queue* table, long unsigned int 
                 holdCurrent = holdNext;
             }
             fwrite(compressed, sizeof(char), size, fPtr);//write compress into output file
-	    printf("Arquivo gerado com o nome %s\n", output);
+            printf("Arquivo gerado com o nome %s\n", output);
             fclose(fPtr);
         }
         else
