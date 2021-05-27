@@ -7,7 +7,6 @@
 /*
 this code receive a file as input, read all it's characters and store them in a Red Black Tree, counting all it's elements
 */
-//FILE* data;
 typedef struct code
 {
     long unsigned int count;
@@ -559,6 +558,7 @@ void decompress(const char* input, const char* output)
         //create a huffman tree from table 
         printQueue(table);
         huff = createHuffmanTree(copyQueue(table));
+        printf("Árvore de Huffman do arquivo fonte: \n");
         printHuff(huff, 0);
         if(huff == NULL)
             return;
@@ -575,9 +575,6 @@ void decompress(const char* input, const char* output)
                     aux = compressed;
                     compressed = compressed << 1;//update input character
                     aux = aux >> 7;//move current bit to the last position
-                    /*data = fopen("decompress", "a");
-                    fprintf(data, "%d", aux);
-                    fclose(data);*/
                     if(aux == 0)//not a valid character
                         element = element->left;
                     else
