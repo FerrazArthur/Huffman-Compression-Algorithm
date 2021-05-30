@@ -1,14 +1,17 @@
-#include"RB.h"
+#include "RB.h"
 #define SMALLER (-1)
 #define ABORT 0
 #define HASNEWSON 1
-#define RIGHTGRANDSON 2
-#define LEFTGRANDSON 3
-#define DOUBLEBLACK 4
-#define RBBALANCED 5
+#define ALREADYWRITTEN 2
+#define RIGHTGRANDSON 3
+#define LEFTGRANDSON 4
+#define DOUBLEBLACK 5
+#define RBBALANCED 6
 
 void destroyNodeRBTree(Node* node)
 {
+    if(node != NULL)
+        destroyInfo(node->info);
     free(node);
 }
 
@@ -35,6 +38,13 @@ Node* createNodeRBTree(void* info)
     return ptr;
 }
 
+void* getInfo(Node* node)
+{
+    if(node != NULL)
+        return node->info;
+    return NULL;
+}
+
 void changeColor(Node* node, enum Color newcolor)
 {
     if(node != NULL)
@@ -49,11 +59,11 @@ int isRed(Node* node)
     return 0;
 }
 
-void printRBTree(Node* head, int level)
+void printRBTree(Node* head, void (*printKey) (Node*),int level)
 {
     if(head != NULL)
     {
-        printRBTree(head->rightRB, level+1);
+        printRBTree(head->rightRB, printKey, level+1);
         for(int i = 0; i < level; i++)
             printf("    ");
         if(isRed(head))
@@ -63,7 +73,12 @@ void printRBTree(Node* head, int level)
             printf("\033[0;0m\n");
         else
             printf("\n");
-        printRBTree(head->leftRB, level+1);
+/*        if(isRed(head))
+            printf(" (Vermelho)\n");
+        else
+            printf(" (Preto)\n");
+            */
+        printRBTree(head->leftRB, printKey, level+1);
     }
 }
 
@@ -78,14 +93,12 @@ Node* findSmallestNodeRBTree(Node* head)
 }
 
 
-Node* searchInfoRBTree(Node* head, unsigned char* key)
+Node* searchInfoRBTree(Node* head, void* key)
 {
     if (head != NULL)
     {
-
-        if(compareInfo(getKey(head), key) == 1){
+        if(compareInfo(getKey(head), key) == 1)
             return searchInfoRBTree(head->leftRB, key);
-        }
         else if (compareInfo(getKey(head), key) == -1)
             return searchInfoRBTree(head->rightRB, key);
     }
@@ -136,31 +149,29 @@ void RLRotation(Node** head)
     (*head)->leftRB = son;
 }
 
-void incrementCode(Node* node);
-void* createCode(unsigned char* aux);
-
-int insertNodeRBTree(Node** head, Node* root, unsigned char* newInfo)
+int insertNodeRBTree(Node** head, Node* root, Node* newNode)
 {
     int answer = ABORT;
     int compare = 0;
+    if(newNode == NULL)
+        return ABORT;
     if((*head) == NULL)
     {
-        *head = createNodeRBTree(createCode(newInfo));
+        *head = newNode;
         if(root == NULL)//the tree is empty so newNode is going to be the root, needs to be Black
             changeColor(*head, Black);
         return HASNEWSON;
     }
-    compare = compareInfo(getKey(*head), newInfo);
+    compare = compareInfo(getKey(*head), getKey(newNode));
     if(compare == 0)
-    {
-        incrementCode(*head);
-        return answer;
-    }
+        return ALREADYWRITTEN;
     if(compare == SMALLER)
-    {//newNode's info is bigger than current's
-       if((answer = insertNodeRBTree(&(*head)->rightRB, root, newInfo)) != ABORT)//recursive call passing rightRB
+    {//current's info is smaller than newNode's
+       if((answer = insertNodeRBTree(&(*head)->rightRB, root, newNode)) != ABORT)//recursive call passing rightRB
         {
-            if(answer == HASNEWSON)// answer iquals 1 means that the node in this Node(head*) rightRB is Red
+            if(answer == ABORT || answer == ALREADYWRITTEN)
+                return answer;
+            else if(answer == HASNEWSON)// answer iquals 1 means that the node in this Node(head*) rightRB is Red
                 return RIGHTGRANDSON;//tells previous recursive calls that a red Node is located in his rightRB pointer
             else if(answer == RIGHTGRANDSON || answer == LEFTGRANDSON)
             {
@@ -194,16 +205,18 @@ int insertNodeRBTree(Node** head, Node* root, unsigned char* newInfo)
     }
     else
     {//newNode's info is smaller than current's
-            if((answer = insertNodeRBTree(&(*head)->leftRB, root, newInfo)) != ABORT)//recursive call passing leftRB
-            {
-            if(answer == HASNEWSON)// answer iquals 1 means that the node in this Node(head*) leftRB is Red
+        if((answer = insertNodeRBTree(&(*head)->leftRB, root, newNode)) != ABORT)//recursive call passing leftRB
+        {
+            if(answer == ABORT || answer == ALREADYWRITTEN)
+                return answer;
+            else if(answer == HASNEWSON)// answer iquals 1 means that the node in this Node(head*) leftRB is Red
                 return LEFTGRANDSON;//tells previous recursive calls that a red Node is located in his leftRB pointer
             else if(answer == LEFTGRANDSON || answer == RIGHTGRANDSON)
             {
                 if(isRed((*head)->leftRB))//if head*'s leftRB points to a Red Node, RB properties are being violated
                 {
                     if((*head)->rightRB != NULL && isRed((*head)->rightRB))//if newNode uncle is also red
-                    //this is the case where we need only to change colors to keep this tree with all it's RB properties
+                        //this is the case where we need only to change colors to keep this tree with all it's RB properties
                     {
                         //paint it black(the father and the uncle of the new added node
                         changeColor((*head)->rightRB, Black);
@@ -228,17 +241,17 @@ int insertNodeRBTree(Node** head, Node* root, unsigned char* newInfo)
             return RBBALANCED;
         }
     }
-    //if compare equals zero, return ABORT because newNode isn't declared or newNode is already in the tree
+    //in case something works unintended, return ABORT. But it is not supposed to reach down this line.
     return answer;
 }
 
-int removeNodeRBTree(Node** head,Node* root, unsigned char* info)
+int removeNodeRBTree(Node** head,Node* root, void* info)
 {
     int answer = ABORT;
     Node* ptr = NULL;
     void* aux = NULL;
     if (*head == NULL)
-        return answer;
+        return ABORT;
     int compare = compareInfo(getKey(*head), info);
     if(compare == 0)
     {//remove *head
@@ -390,5 +403,6 @@ int removeNodeRBTree(Node** head,Node* root, unsigned char* info)
             return RBBALANCED;
         }
     }
+    //not suposed to reach down here!
     return answer;
 }

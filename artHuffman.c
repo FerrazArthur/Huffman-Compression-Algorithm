@@ -5,8 +5,11 @@
 #define BITSINBYTE 8
 
 /*
-this code receive a file as input, read all it's characters and store them in a Red Black Tree, counting all it's elements
+This algorithm offers two functionalities:
+to compress a file
+to decompress a file
 */
+
 typedef struct code
 {
     long unsigned int count;
@@ -41,6 +44,8 @@ void incrementCode(Node* node)
 {
     if(node != NULL)
         getCode(node)->count++;
+    else
+        printf("Error while incrementing: received a NULL pointer\n");
 }
 
 void* createCode(unsigned char* aux)
@@ -58,34 +63,43 @@ void* createCode(unsigned char* aux)
     return ptr;
 }
 
+//-----------------------------------Functions to integrate with RB library
+
 void printKey(Node* node)
 {
     if(node != NULL)
-        printf("%c", *getCode(node)->character);
+    {
+        if(*getCode(node)->character != '\n')
+            printf("%c\t%ld", *getCode(node)->character, getCode(node)->count);
+        else
+            printf("enter\t%ld", getCode(node)->count);
+    }
 }
 
-int compareInfo(unsigned char* info1, unsigned char* info2)
+int compareInfo(void* info1, void* info2)
 {
-   if (*info1 == *info2)
-       return 0; 
-   else if (*info1 > *info2)
-       return 1;
-   return -1;
+    if (*(unsigned char*)info1 == *(unsigned char*)info2)
+        return 0; 
+    else if (*(unsigned char*)info1 > *(unsigned char*)info2)
+        return 1;
+    return -1;
 }
 
-unsigned char* getKey(Node* node)
+void* getKey(Node* node)
 {
     if(node != NULL)
         return getCode(node)->character;
     return NULL;
 }
 
-void destroyInfo(unsigned char* info)
+void destroyInfo(void* info)
 {
+    free(((Code*)info)->character);
+    free(((Code*)info)->codeName);
     free(info);
 }
 
-//
+//-----------------------------------End
 
 typedef struct queue
 {
@@ -113,6 +127,7 @@ Queue* createQueue(Code* info)
     }
     return ptr;
 }
+
 void getQueue(Node* RB, Queue** queue)
 {//insert RB content to queue in order using character as key
     Queue* ptr = NULL;
@@ -128,14 +143,14 @@ void getQueue(Node* RB, Queue** queue)
     }
 }
 
-int crescent(long unsigned int value1,long unsigned int value2)
+int crescent(long unsigned int value1, long unsigned int value2)
 {
     if(value1 > value2)
         return 1;
     return 0;
 }
 
-int decrescent(long unsigned int value1,long unsigned int value2)
+int decrescent(long unsigned int value1, long unsigned int value2)
 {
     if(value1 < value2)
         return 1;
@@ -341,6 +356,9 @@ this algorithm fills a redblacktree with characters taken from input file
     FILE *fptr;
     fptr = fopen(fileName, "r");
     unsigned char* aux;
+    Node* ptr = NULL;
+    Node* ptr2 = NULL;
+    int answer = 0;
     if(fptr != NULL)
     {
         while(1)
@@ -349,14 +367,25 @@ this algorithm fills a redblacktree with characters taken from input file
             //take input from file 
             if(fscanf(fptr, "%c", aux) == EOF)
             {
-                destroyInfo(aux);
+                free(aux);
                 break;
             }
             //insert in tree
-            if(insertNodeRBTree(map, *map, aux) == 0)//aux is already in tree
-                destroyInfo(aux);
+            ptr = createNodeRBTree(createCode(aux));
+            answer = insertNodeRBTree(map, *map, ptr);
+            if(answer == 0)//some error ocurred 
+            {
+                printf("Unknow error during insertion in redBlackTree\n");
+                destroyNodeRBTree(ptr);
+            }
+            else if (answer == 2)//aux weight is already present in tree
+            {
+                ptr2 = searchInfoRBTree(*map, aux);//search not working
+                incrementCode(ptr2);
+                destroyNodeRBTree(ptr);
+            }
             count++;
-        };
+        }
         fclose(fptr);
     }
     return count;//total amount of characters in file
@@ -454,7 +483,6 @@ void compress(const char* input, char* output1, Queue* table, long unsigned int 
                 holdCurrent->info->character = holdChar;
                 holdCurrent->info->codeName = holdCode;
                 fwrite(holdCurrent->info->character, sizeof(unsigned char), 1, fOPtr);
-                //fwrite(holdCurrent->info->codeName, sizeof(char), holdCurrent->info->sizeCodeName, fOPtr);
                 /*
                 Intents to store the codenames in compress form, storing any codeName with less than 9 characters into one byte, any codeName with more than 8 and less than 17 characters into two bytes and so on...
                 */
@@ -538,15 +566,12 @@ void decompress(const char* input, const char* output)
             holdCurrent->info->character = (unsigned char*) calloc(sizeof(char), 1);
             fread(holdCurrent->info->character, sizeof(char), 1, fPtr);
             holdCurrent->info->codeName = (unsigned char*) calloc(sizeof(char), holdCurrent->info->sizeCodeName);
-            //fread(holdCurrent->info->codeName, sizeof(char), holdCurrent->info->sizeCodeName, fPtr);
             for(unsigned int j = 0; j < holdCurrent->info->sizeCodeName; j++)
             {
-                printf("sizeCodeName = %u\niteração: %d\n",holdCurrent->info->sizeCodeName, j);
                 if(j % BITSINBYTE == 0)
                     fread(&compressed, sizeof(char), 1, fPtr);
                 aux = compressed;
                 compressed = compressed << 1;//update compressed
-                //aux = aux >> 7;//deslocate current bit into the proper position
                 holdCurrent->info->codeName[j] = aux >> 7;//writting it to codeName
             }
             printCode(holdCurrent->info);
@@ -607,12 +632,12 @@ void Compress(const char* fileInputName, char* fileOutputName)
     long unsigned int amount = createMap(fileInputName, &map);//define all characters in the fileName file and count it's ocurrences
     if(map != NULL)
     {
-        //printRBTree(map, 0);//print the redBlack Tree that holds the characters
+        printRBTree(map,printKey, 0);//print the redBlack Tree that holds the characters
         getQueue(map, &queue);
         insertionSort(&queue, crescent);//Get a minimum priority queue from the redBlackTree elements
         huff = createHuffmanTree(copyQueue(queue));//get the huffman tree of those characters
         createCodeNames(huff, NULL, 0);//calculate the codeName of the characters
-        printHuff(huff, 0);
+        //printHuff(huff, 0);
         insertionSort(&queue, decrescent);//creating table of contents in decrescent order
         //create the compact file 
         compress(fileInputName, fileOutputName, queue, amount);
