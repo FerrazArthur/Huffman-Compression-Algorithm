@@ -2,8 +2,8 @@ CC = gcc
 CFLAGS = -g -Wall
 DEPS = RB.h
 
-exe: artHuffman.o RB.o
-	$(CC) $(CFLAGS) -o exe artHuffman.o RB.o -lm
+art: artHuffman.o RB.o
+	$(CC) $(CFLAGS) -o art artHuffman.o RB.o -lm
 artHuffman.o: artHuffman.c $(DEPS)
 	$(CC) $(CFLAGS) -c -o artHuffman.o artHuffman.c -lm
 RB.o: RB.c

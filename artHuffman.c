@@ -632,7 +632,7 @@ void Compress(const char* fileInputName, char* fileOutputName)
     long unsigned int amount = createMap(fileInputName, &map);//define all characters in the fileName file and count it's ocurrences
     if(map != NULL)
     {
-        printRBTree(map,printKey, 0);//print the redBlack Tree that holds the characters
+        //printRBTree(map,printKey, 0);//print the redBlack Tree that holds the characters
         getQueue(map, &queue);
         insertionSort(&queue, crescent);//Get a minimum priority queue from the redBlackTree elements
         huff = createHuffmanTree(copyQueue(queue));//get the huffman tree of those characters
