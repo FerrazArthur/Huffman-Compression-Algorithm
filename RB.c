@@ -8,6 +8,9 @@
 #define DOUBLEBLACK 5
 #define RBBALANCED 6
 
+//Details about input, output and behaviour of this functions are presented in file RB.h
+//Detalhes sobre parâmetros, output e comportamento dessas funções estão no arquivo RB.h
+
 void destroyNodeRBTree(Node* node)
 {
     if(node != NULL)
@@ -73,11 +76,13 @@ void printRBTree(Node* head, void (*printKey) (Node*),int level)
             printf("\033[0;0m\n");
         else
             printf("\n");
-/*        if(isRed(head))
+        
+/*      
+        if(isRed(head))
             printf(" (Vermelho)\n");
         else
             printf(" (Preto)\n");
-            */
+*/
         printRBTree(head->leftRB, printKey, level+1);
     }
 }
