@@ -21,39 +21,49 @@ typedef struct Node
 }Node;
 
 //***********************************************Abstract methods:
-//Rhese are meant to be written by the one who knows the type of info it's going to be used by the redBlackTree, being this a generic library
+//***********************************************Métodos abstratos:
+//These functions have to be written by the one who knows the type of info it's going to be used by the redBlackTree, as this a generic implementation
+//Essas funções devem ser implementadas considerando o tipo de dado que será armazenado na arvore, pois essa é uma implementação genérica.
 void* getKey(Node* node);
 /*
-Input: Pointer to Node
+Input: Pointer to Node ~ Ponteiro para Node
 Output: Node->info or NULL
 Behaviour: Return a pointer to the variable that is going to be the key parameter.
+Comportamento: retorna um ponteiro para a variável que será o parâmetro chave(key) das comparações.
 */
 
 int compareInfo(void* info1, void* info2);
 /*
-Input: Two generic pointers
+Input: Two generic pointers ~ Dois ponteiros genericos
 Output: Int
 Behaviour: User define a method to compare the keys, given by getKey method, and the output should be as follows
     0 if they have the same weight;
     1 if info1 weight is bigger than info2;
-    -1 if info1 weight is smaller than info2;
+    -1 if info1 weight is smaller than info2.
+Comportamento: Compara as duas chaves retornadas pelo método getKey e o output deve ser o seguinte:
+    0 se as chaves possuírem o mesmo valor;
+    1 se info1 tiver valor maior que info2;
+    -1 se info1 tiver um valor menor que info2.
 */
 
 void destroyInfo(void* info);
 /*
-Input: Pointer to info that the user has defined
+Input: Pointer to info that the user has defined ~ Ponteiro para o tipo info 
 Output: Void
 Behaviour: Releases memory previous allocatted.
+Comportamento: Libera memória alocada para info, caso tenha sido alocada.
 */
 
 void printKey(Node* ptr);
 /*
-Input: Pointer to Node
+Input: Pointer to Node ~ Ponteiro para tipo Node
 Output: Void
 Behaviour: Print the key in node
+Comportamento: Imprime o valor chave no nó
 */
 
 //***********************************************END
+//As funções abaixo ja estão implementadas no arquivo RB.c
 
 void destroyNodeRBTree(Node* node);
 /*
