@@ -21,8 +21,8 @@ typedef struct Node
 }Node;
 
 //***********************************************Abstract methods:
-//***********************************************Métodos abstratos:
 //These functions have to be written by the one who knows the type of info it's going to be used by the redBlackTree, as this a generic implementation
+//***********************************************Métodos abstratos:
 //Essas funções devem ser implementadas considerando o tipo de dado que será armazenado na arvore, pois essa é uma implementação genérica.
 void* getKey(Node* node);
 /*
