@@ -649,8 +649,8 @@ void Compress(const char* fileInputName, char* fileOutputName)
 
 void menu()
 {
-    char fileInputName[50];
-    char fileOutputName[50];
+    char fileInputName[255];
+    char fileOutputName[255];
     char aux;
     printf("Escolha uma funcionalidade\n[C] Comprimir um arquivo de texto\n[D] Descomprimir um arquivo\n>");
     scanf(" %c", &aux);
