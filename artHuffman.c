@@ -471,6 +471,24 @@ Code* getElement(unsigned char foo, Queue* table)
     return NULL;
 }
 
+long unsigned int countQueue(Queue* head)
+{
+/*
+    Input: Queue of Code structure elements;
+    Output: number of elements in queue;
+*/
+    Queue* ptr=head;
+    long unsigned int count=0;
+
+    ptr = head;
+    while(ptr != NULL)
+    {
+        count++;
+        ptr = ptr->next;
+    }
+    return count;
+}
+
 void compress(const char* input, char* output1, Queue* table, long unsigned int amount)
 {
 /*
@@ -490,13 +508,7 @@ void compress(const char* input, char* output1, Queue* table, long unsigned int 
     long unsigned int pos = 0;
     FILE* fPtr = fopen(input, "r");
     //calculate the num of elements in table
-    holdCurrent = table;
-    pos = 0;
-    while(holdCurrent != NULL)
-    {
-        pos++;
-        holdCurrent = holdCurrent->next;
-    }
+    pos = countQueue(table); 
 
     if(fPtr != NULL)
     {
