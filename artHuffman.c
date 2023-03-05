@@ -130,6 +130,12 @@ Queue* createQueue(Code* info)
 
 void getQueue(Node* RB, Queue** queue)
 {//insert RB content to queue in order using character as key
+/*
+    Input: Red-Black Tree, pointer to Queue adress.
+    Output: None.
+    Behaviour: Go throught RBTree in order, inserting it's nodes info into a queue.
+    Computamento: Percorre a árvore rubro negra em ordem, inserindo seus nós numa fila.
+*/
     Queue* ptr = NULL;
     if(RB != NULL)
     {
@@ -164,7 +170,7 @@ void insertionSort(Queue** input, int (*op) (long unsigned int, long unsigned in
     Queue* pPtr = NULL;
     Queue* ptr = NULL;
     /*
-    step 1: search input queue for me biggest/smallest
+    step 1: search input queue for the biggest/smallest
     step 2: pop it from input
     step 3: insert in first position of output
     step 4: repeat until input is empty
@@ -350,6 +356,18 @@ void createCodeNames(Code* huff, unsigned char* codeName, long unsigned int leve
 long unsigned int createMap(const char* fileName, Node** map)
 /*
 this algorithm fills a redblacktree with characters taken from input file
+    Input: name of input file, pointer of adress of red-black tree.
+    Output: number of characters read from file named fileName.
+    Behaviour: Tries to open the file and for each character read from it, tries to insert
+    it into the RBTree:
+        -If it is not present, then insert as a RB node.
+        -If already is present in the RB tree, then find the node that has it's equivalent
+        character and increment the count of ocurrences of that specific character.
+    Comportamento: Tenta abrir o arquivo e para cada caracter que for lido, tenta inserir
+    ele na arvore rubro negra:
+        -Se ele não estiver presente, ele será inserido como um nó na árvore.
+        -Se ele ja estiver presente, então encontra o nó que armazena esse caractere e 
+        incrementa um no contador de ocorrências daquele caractere específico.
 */
 {
     long unsigned int count = 0;
@@ -393,6 +411,17 @@ this algorithm fills a redblacktree with characters taken from input file
 
 void printHuff(Code* huff, long unsigned int level)
 {
+/*
+    Input: Huffman tree node filled with characters,, where key element is the number of ocurrences
+    of the character in the file; integer that indicate with height of the tree we are printing
+    Output: Void
+    Behaviour: Recursivelly walkthrought the tree to the bottom-most rightside of the tree, print that node's
+    Huffman's code with the acording amount of spaces indicating it's depth. Then proceed
+    to print the rest of the tree following the correct tabulation.
+    Comportamento: Percorre a árvore recursivamente até o elemento mais profundo da direita e o imprime
+    com a quantidade correta de espaços para indicar a profundidade. Procede para imprimir os demais elementos
+    em suas respectivas tabulações;
+*/
     if(huff != NULL)
     {
         if(huff->right != NULL)
@@ -422,6 +451,12 @@ void printHuff(Code* huff, long unsigned int level)
 
 Code* getElement(unsigned char foo, Queue* table)
 {
+/*
+    Input: Character foo to search in queue; Queue table.
+    Output: If found, return the Code structure that store that character. NULL otherwise;
+    Comportamento: Retorna a estrutura Code que armazena o caractere buscado ou NULL se não estiver
+    na lista.
+*/
     if(table != NULL)
     {
         Queue* ptr = table;
@@ -438,6 +473,11 @@ Code* getElement(unsigned char foo, Queue* table)
 
 void compress(const char* input, char* output1, Queue* table, long unsigned int amount)
 {
+/*
+    Input: Name of file to get input; Name of output file; Queue with huffman codes; number of elements.
+    Output: Void.
+    Behaviour: 
+*/
     Code* element = NULL;
     Queue* holdCurrent = NULL;
     Queue* holdNext= NULL;
@@ -457,6 +497,7 @@ void compress(const char* input, char* output1, Queue* table, long unsigned int 
         pos++;
         holdCurrent = holdCurrent->next;
     }
+
     if(fPtr != NULL)
     {
         FILE* fOPtr = fopen(output, "wb");
@@ -624,22 +665,38 @@ void decompress(const char* input, const char* output)
     }
 }
 
-void Compress(const char* fileInputName, char* fileOutputName)
+void setupCompress(const char* fileInputName, char* fileOutputName)
 {
+    /*
+    This function counts the ocurrence of each individual character in the file and use that info to setup a 
+    huffmantree for them. Each codename is stored in a Code structure alongside it's character and count in a
+    queue, whitch is passed as argument to compress function.
+    Input: names of input and output files as char's vectors ~Nome dos arquivos de input e output.
+    Output: None.
+    Behaviour: Create a Red-Black Tree whose nodes represent every singular character present in input file and 
+    store it in map. Create a minimum priority queue with the elements in map and use that to create a Huffman-
+    Tree huff. Then proceed to call compress function with a maximum priority queue of huffman's tree elements.
+    */
     Node* map = NULL;
     Queue* queue = NULL;
     Code* huff = NULL;
-    long unsigned int amount = createMap(fileInputName, &map);//define all characters in the fileName file and count it's ocurrences
+    //define all characters in the fileName file and count it's ocurrences
+    long unsigned int amount = createMap(fileInputName, &map);
     if(map != NULL)
     {
         //printRBTree(map,printKey, 0);//print the redBlack Tree that holds the characters
+        //Get a in order queue of Code elements present in the RBTree.
         getQueue(map, &queue);
-        insertionSort(&queue, crescent);//Get a minimum priority queue from the redBlackTree elements
-        huff = createHuffmanTree(copyQueue(queue));//get the huffman tree of those characters
-        createCodeNames(huff, NULL, 0);//calculate the codeName of the characters
+        //order characters in ascending order of ocurrences, in a minimum priority queue.
+        insertionSort(&queue, crescent);
+        //get the huffman tree of those characters
+        huff = createHuffmanTree(copyQueue(queue));//passing a copy of queue because it works by cropping elements.
+        //calculate the codeName of the characters
+        createCodeNames(huff, NULL, 0);
         //printHuff(huff, 0);
-        insertionSort(&queue, decrescent);//creating table of contents in decrescent order
-        //create the compact file 
+        //creating table of contents in decrescent order to store and be easier to retrieve later.
+        insertionSort(&queue, decrescent);
+        //create the compacted file 
         compress(fileInputName, fileOutputName, queue, amount);
         destroyRBTree(map);
     }
@@ -661,7 +718,7 @@ void menu()
             scanf("%s", fileInputName);
             printf("Insira o nome do arquivo de saida\n>");
             scanf("%s", fileOutputName);
-            Compress(fileInputName, fileOutputName);
+            setupCompress(fileInputName, fileOutputName);
             break;
         case'D':case'd':
             printf("Insira o nome do arquivo de entrada\n>");
