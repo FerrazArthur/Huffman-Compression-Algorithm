@@ -496,19 +496,23 @@ void compress(const char* input, char* output1, Queue* table, long unsigned int 
     Output: Void.
     Behaviour: 
 */
+    //setup variables
     Code* element = NULL;
     Queue* holdCurrent = NULL;
     Queue* holdNext= NULL;
     Code* holdInfo = NULL;
     unsigned char* holdChar = NULL;
     unsigned char* holdCode = NULL;
-    const char* output = strcat(output1, ".art");//name of format to be saved
     unsigned char compress = 0;
     unsigned char aux = ' ';
     long unsigned int pos = 0;
-    FILE* fPtr = fopen(input, "r");
+    //force name of format to output namefile, if it doesnt already has.
+    const char* output = (strstr(output1, ".art\0") != NULL)? output1 : strcat(output1, ".art");
+
     //calculate the num of elements in table
     pos = countQueue(table); 
+
+    FILE* fPtr = fopen(input, "r");
 
     if(fPtr != NULL)
     {
@@ -601,7 +605,7 @@ void decompress(const char* input, const char* output)
     unsigned char compressed = 0;
     unsigned char aux = ' ';
     long unsigned int pos = 0;
-    if(strstr(input, ".art") == NULL)
+    if(strstr(input, ".art\0") == NULL)
     {
         printf("Formato não reconhecido\n");
         return;
